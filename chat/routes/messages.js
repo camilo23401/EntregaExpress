@@ -10,6 +10,10 @@ var mensajes = []
 router.get('/', function(req, res, next) {
   leerPersistidos()
   res.send(mensajes);
+  mensajes.map((item) => 
+  {
+    ws.send(JSON.stringify(item));
+  });
 });
 
 router.get('/:id', function(req, res, next) {
@@ -109,5 +113,6 @@ function leerPersistidos()
     console.log(error)
   }
 }
+
 
 module.exports = router;
