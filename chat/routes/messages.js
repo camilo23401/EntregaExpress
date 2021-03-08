@@ -30,7 +30,7 @@ router.get('/:id', function(req, res, next) {
  router.post("/", (req, res) => {
   const schema = Joi.object({
     message: Joi.string().min(5).required(),
-    author: Joi.string().required()
+    author: Joi.string().pattern(new RegExp('^([a-zA-Z])+([ ])+([a-zA-Z])')).required()
   });
 
   const { error } = schema.validate(req.body);
