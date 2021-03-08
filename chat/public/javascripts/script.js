@@ -7,15 +7,24 @@ ws.onmessage = (msg) => {
 };
 
 const renderMessages = (data) => {
-  const html = data.map((item) => `<p>${item}</p>`).join(" ");
+  const html = data.map((item) => `<p>${item.message} - Sent by: ${item.author} </p>`).join(" ");
   document.getElementById("messages").innerHTML = html;
 };
 
 const handleSubmit = (evt) => {
   evt.preventDefault();
   const message = document.getElementById("message");
-  ws.send(message.value);
+  const author = document.getElementById("author");
+  const ts = new Date().valueOf();
+  const info = 
+  {
+    message: message.value,
+    author: author.value,
+    ts: ts
+  }
+  ws.send(JSON.stringify(info));
   message.value = "";
+  author.value = "";
 };
 
 const form = document.getElementById("form");

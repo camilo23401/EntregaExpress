@@ -3,10 +3,12 @@ var router = express.Router();
 const Joi = require("joi");
 const WebSocket = require("ws")
 const ws = new WebSocket("ws://localhost:3000");
+const fs = require("fs")
 
-const mensajes = []
+var mensajes = []
 /* GET users listing. */
 router.get('/', function(req, res, next) {
+  leerPersistidos()
   res.send(mensajes);
 });
 
@@ -33,15 +35,16 @@ router.get('/:id', function(req, res, next) {
     return res.status(400).send(error);
   }
 
+  const ts = new Date().valueOf();
   const msg = {
-    ts: mensajes.length + 1,
     message: req.body.message,
-    author: req.body.author
+    author: req.body.author,
+    ts: ts
   };
 
-  mensajes.push(msg);
   res.send(msg);
-  ws.send(msg.message);
+  ws.send(JSON.stringify(msg));
+  persistirJSON(msg)
 });
 
 router.put("/:id", (req, res) => {
@@ -82,6 +85,29 @@ router.delete("/:id", (req, res) => {
   } 
   res.send(mensajeBuscado);
 });
- 
+
+function persistirJSON(mensaje){
+  try {
+       mensajes.push(mensaje);
+       fs.writeFileSync('mensajesCliente.json', JSON.stringify(mensajes));
+   } catch (error) {
+       console.log(error);
+   }
+}
+
+function leerPersistidos()
+{
+  try{
+    let mensajesPersistidos = fs.readFileSync('mensajesCliente.json','utf-8');
+        mensajesLeidos = JSON.parse(mensajesPersistidos);
+        for(var i in mensajesLeidos)
+        {
+          mensajes.push(mensajesLeidos[i]);
+        }
+  } catch(error)
+  {
+    console.log(error)
+  }
+}
 
 module.exports = router;
