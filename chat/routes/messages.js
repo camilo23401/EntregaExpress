@@ -6,14 +6,21 @@ const ws = new WebSocket("ws://localhost:3000");
 const fs = require("fs")
 
 var mensajes = []
+var cargo = false;
+var tsMsgs = []
 /* GET users listing. */
+
 router.get('/', function(req, res, next) {
   leerPersistidos()
   res.send(mensajes);
-  mensajes.map((item) => 
+  if(!cargo)
+  {
+    mensajes.map((item) => 
   {
     ws.send(JSON.stringify(item));
   });
+  cargo = true;
+  }
 });
 
 router.get('/:id', function(req, res, next) {
@@ -28,6 +35,7 @@ router.get('/:id', function(req, res, next) {
 });
 
  router.post("/", (req, res) => {
+   
   const schema = Joi.object({
     message: Joi.string().min(5).required(),
     author: Joi.string().pattern(new RegExp('^([a-zA-Z])+([ ])+([a-zA-Z])')).required()
@@ -104,13 +112,31 @@ function leerPersistidos()
   try{
     let mensajesPersistidos = fs.readFileSync('mensajesCliente.json','utf-8');
         mensajesLeidos = JSON.parse(mensajesPersistidos);
+        tsMensajes();
         for(var i in mensajesLeidos)
         {
-          mensajes.push(mensajesLeidos[i]);
+          if(!tsMsgs.includes(mensajesLeidos[i].ts))
+          {
+            mensajes.push(mensajesLeidos[i]);
+          }
         }
   } catch(error)
   {
     console.log(error)
+  }
+}
+
+function tsMensajes()
+{
+  for(var i in mensajes)
+  {
+    if(tsMsgs.includes(mensajes[i].ts))
+    {
+
+    }
+    else{
+      tsMsgs.push(mensajes[i].ts);
+    }
   }
 }
 

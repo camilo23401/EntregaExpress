@@ -6,12 +6,15 @@ const { send } = require("process");
 const clients = [];
 const messages = [];
 
+
 const wsConnection = (server) => {
   const wss = new WebSocket.Server({ server });
 
   wss.on("connection", (ws) => {
      clients.push(ws);
      sendMessages();
+     ws.emit
+    
 
     ws.on("message", (info) => {
       const infoArreglada = JSON.parse(info)
