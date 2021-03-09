@@ -3,7 +3,8 @@ var router = express.Router();
 const Joi = require("joi");
 const WebSocket = require("ws")
 const ws = new WebSocket("ws://localhost:3000");
-const fs = require("fs")
+const fs = require("fs");
+const Message = require('../models/message');
 
 var mensajes = []
 var cargo = false;
@@ -11,8 +12,19 @@ var tsMsgs = []
 /* GET users listing. */
 
 router.get('/', function(req, res, next) {
-  leerPersistidos()
-  res.send(mensajes);
+  try{
+    Message.findAll().then((results)=>
+    {
+        tsMensajes();
+        for(var i in results)
+        {
+          const aa = results[i].ts;
+          if(!tsMsgs.includes(aa))
+          {
+            mensajes.push(results[i]);
+          }
+        }
+        res.send(mensajes);
   if(!cargo)
   {
     mensajes.map((item) => 
@@ -20,6 +32,11 @@ router.get('/', function(req, res, next) {
     ws.send(JSON.stringify(item));
   });
   cargo = true;
+  }
+    })
+  } catch(error)
+  {
+    console.log(error)
   }
 });
 
@@ -54,9 +71,11 @@ router.get('/:id', function(req, res, next) {
     ts: ts
   };
 
-  res.send(msg);
+  Message.create( { message: msg.message, author: msg.author, ts: msg.ts }).then((result)=>
+  {
+    res.send(result)
+  })
   ws.send(JSON.stringify(msg));
-  persistirJSON(msg)
 });
 
 router.put("/:id", (req, res) => {
@@ -98,28 +117,21 @@ router.delete("/:id", (req, res) => {
   res.send(mensajeBuscado);
 });
 
-function persistirJSON(mensaje){
-  try {
-       mensajes.push(mensaje);
-       fs.writeFileSync('mensajesCliente.json', JSON.stringify(mensajes));
-   } catch (error) {
-       console.log(error);
-   }
-}
-
 function leerPersistidos()
 {
   try{
-    let mensajesPersistidos = fs.readFileSync('mensajesCliente.json','utf-8');
-        mensajesLeidos = JSON.parse(mensajesPersistidos);
+    Message.findAll().then((results)=>
+    {
         tsMensajes();
-        for(var i in mensajesLeidos)
+        for(var i in results)
         {
-          if(!tsMsgs.includes(mensajesLeidos[i].ts))
+          const aa = results[i].ts;
+          if(!tsMsgs.includes(aa))
           {
-            mensajes.push(mensajesLeidos[i]);
+            mensajes.push(results[i]);
           }
         }
+    })
   } catch(error)
   {
     console.log(error)
